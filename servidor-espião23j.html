@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servidor de Mensagens GUI Total</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 380px; box-sizing: border-box; }
+        
+        /* Input de texto livre */
+        .input-livre { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #007bff; border-radius: 6px; font-size: 15px; box-sizing: border-box; background: #fff; color: #333; }
+        
+        /* Botões */
+        button { border: none; padding: 12px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; transition: 0.2s; margin-top: 5px; font-weight: bold; }
+        .btn-blue { background: #007bff; color: white; }
+        .btn-blue:hover { background: #0056b3; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-green:hover { background: #218838; }
+        .btn-close { background: #dc3545; color: white; margin-top: 10px; }
+        
+        /* Zona de Arrastar Ficheiro */
+        .drop-zone { border: 2px dashed #ccc; padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #fafafa; cursor: pointer; font-size: 14px; color: #555; }
+        .drop-zone.dragover { background: #e1f5fe; border-color: #03a9f4; }
+
+        .status { margin-top: 15px; font-size: 14px; color: #666; min-height: 20px; }
+        input[type="file"] { display: none; }
+
+        /* --- JANELA GUI POPUP --- */
+        .gui-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
+        .gui-window { background: #ffffff; width: 90%; max-width: 450px; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: left; }
+        .gui-window h3 { margin-top: 0; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .gui-textarea { width: 100%; height: 150px; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; font-family: inherit; resize: none; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Servidor de Mensagens</h2>
+    
+    <!-- Zona de Drop + Botão Alternativo -->
+    <div id="dropZone" class="drop-zone">
+        Arraste um ficheiro .txt aqui <br>ou <span style="text-decoration: underline; color: #007bff;">clique para escolher</span>
+    </div>
+    <input type="file" id="carregarTxt" accept=".txt">
+
+    <!-- Caixa de texto 100% LIVRE. Pode apagar e escrever o que quiser aqui -->
+    <input type="text" id="msgUsuario" class="input-livre" placeholder="Escreva a sua mensagem aqui..." value="Mensagem padrão do sistema">
+
+    <p style="font-size: 13px; color: #666;">Clique abaixo e mude de aba no browser para testar o alerta.</p>
+    <button id="btnDisparar" class="btn-blue">Agendar Alerta (5s)</button>
+    
+    <div id="status" class="status">Estado: Pronto</div>
+</div>
+
+<!-- ================= JANELA GUI MODAL ================= -->
+<div id="janelaGui" class="gui-overlay">
+    <div class="gui-window">
+        <h3>📝 Conteúdo do Ficheiro Detectado!</h3>
+        <p style="font-size: 14px; color: #666; margin: 0;">O texto do seu ficheiro .txt foi importado com sucesso:</p>
+        
+        <textarea id="guiTexto" class="gui-textarea"></textarea>
+        
+        <button id="btnConfirmarGui" class="btn-green" style="margin-top: 15px;">Injetar Texto na Interface</button>
+        <button id="btnFecharGui" class="btn-close">Descartar</button>
+    </div>
+</div>
+
+<script>
+    const btnDisparar = document.getElementById('btnDisparar');
+    const statusTxt = document.getElementById('status');
+    const fileInput = document.getElementById('carregarTxt');
+    const dropZone = document.getElementById('dropZone');
+    const msgInput = document.getElementById('msgUsuario');
+    
+    const janelaGui = document.getElementById('janelaGui');
+    const guiTexto = document.getElementById('guiTexto');
+    const btnConfirmarGui = document.getElementById('btnConfirmarGui');
+    const btnFecharGui = document.getElementById('btnFecharGui');
+
+    // 1. Abrir explorador ao clicar na zona de drop
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // 2. Processar ficheiro vindo do explorador convencional
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) processarFicheiro(e.target.files[0]);
+    });
+
+    // 3. Processar arrastar e largar (Drag & Drop)
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) processarFicheiro(e.dataTransfer.files[0]);
+    });
+
+    // SUPER FUNÇÃO: Lê o ficheiro e força a abertura da Janela GUI
+    function processarFicheiro(ficheiro) {
+        if (!ficheiro.name.endsWith('.txt')) {
+            statusTxt.innerText = "Erro: Apenas ficheiros .txt são aceites! ❌";
+            return;
+        }
+        
+        const leitor = new FileReader();
+        leitor.onload = function(e) {
+            guiTexto.value = e.target.result.trim(); // Coloca o texto na GUI
+            janelaGui.style.display = 'flex';       // Força a abertura da Janela GUI
+            statusTxt.innerText = "Ficheiro aberto na janela GUI! 📝";
+        };
+        leitor.readAsText(ficheiro);
+    }
+
+    // Confirmar texto da GUI e injetar no input principal
+    btnConfirmarGui.addEventListener('click', () => {
+        msgInput.value = guiTexto.value; // Passa o texto para a caixa de texto livre
+        janelaGui.style.display = 'none';
+        statusTxt.innerText = "Texto importado com sucesso! Transmissão pronta. 💾";
+        fileInput.value = ""; // Limpa memória do input
+    });
+
+    // Fechar GUI sem fazer nada
+    btnFecharGui.addEventListener('click', () => {
+        janelaGui.style.display = 'none';
+        fileInput.value = "";
+    });
+
+    // Enviar Alerta Push Nativo
+    btnDisparar.addEventListener('click', () => {
+        const textoFinal = msgInput.value.trim();
+
+        if (textoFinal === "") {
+            statusTxt.innerText = "Erro: Escreva uma mensagem primeiro! ⚠️";
+            return;
+        }
+
+        Notification.requestPermission().then(permissao => {
+            if (permissao === 'granted') {
+                statusTxt.innerText = "Agendado! Mude de aba agora...";
+                
+                setTimeout(() => {
+                    const notificação = new Notification("Mensagem Recebida! ✉️", {
+                        body: textoFinal,
+                        icon: "https://flaticon.com",
+                        requireInteraction: true 
+                    });
+                    
+                    notificação.onclick = () => window.focus();
+                    statusTxt.innerText = "Mensagem enviada com sucesso! ✅";
+                }, 5000);
+            } else {
+                statusTxt.innerText = "Erro: Permissão de notificações negada. ❌";
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
