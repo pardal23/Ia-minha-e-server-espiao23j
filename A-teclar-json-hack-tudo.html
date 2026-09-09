@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador Nativo de Extensão Real</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #7f8c8d;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 6px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .info-box {
+            background-color: #3498db;
+            color: white;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .status {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            display: none;
+        }
+        .instructions {
+            margin-top: 25px;
+            text-align: left;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            border-left: 4px solid #3498db;
+        }
+        ol {
+            margin: 5px 0 0 0;
+            padding-left: 20px;
+        }
+        li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Gerador Direto da Extensão Real</h1>
+    <p>Este utilitário cria automaticamente a pasta <strong>jesus23</strong> com os ficheiros da extensão no local escolhido.</p>
+    
+    <div class="info-box">
+        ⌨️ Pressione a tecla "A" para iniciar o programa
+    </div>
+
+    <div class="input-group">
+        <label for="user-message">Mensagem Personalizada do Painel Lateral (JSON):</label>
+        <input type="text" id="user-message" value="A tua extensão está instalada no Chrome e a funcionar com 5GB de Armazenamento!" placeholder="Escreve a mensagem padrão para o painel...">
+    </div>
+
+    <div id="status-msg" class="status"></div>
+
+    <div class="instructions">
+        <strong>Como instalar no Chrome:</strong>
+        <ol>
+            <li>Pressione a tecla <strong>A</strong> no teclado (fora da caixa de texto).</li>
+            <li>Selecione a pasta de destino pretendida na janela do sistema operativo.</li>
+            <li>O browser criará a pasta <code>jesus23</code> lá dentro automaticamente.</li>
+            <li>Abre o Chrome e acede a <code>chrome://extensions/</code>.</li>
+            <li>Ativa o <strong>Modo de programador</strong> e clica em <strong>Carregar expandida</strong>.</li>
+            <li>Seleciona a pasta <code>jesus23</code> criada pelo gerador.</li>
+        </ol>
+    </div>
+</div>
+
+<script>
+// Escuta global de teclado para substituir o clique do botão
+document.addEventListener('keydown', function(event) {
+    const inputMensagem = document.getElementById('user-message');
+    
+    // Executa apenas se a tecla for "A" ou "a" e se o foco NÃO estiver na caixa de texto
+    if ((event.key === 'a' || event.key === 'A') && document.activeElement !== inputMensagem) {
+        event.preventDefault();
+        gerarPastasExtensao();
+    }
+});
+
+async function gravarFicheiroTexto(diretorioHandle, nomeFicheiro, conteudo) {
+    const fileHandle = await diretorioHandle.getFileHandle(nomeFicheiro, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(conteudo);
+    await writable.close();
+}
+
+async function gerarPastasExtensao() {
+    const statusMsg = document.getElementById('status-msg');
+    const txtMensagem = document.getElementById('user-message').value || "Mensagem padrão vazia.";
+    
+    try {
+        // Pede autorização para escolher a pasta raíz de destino através da API do navegador
+        const raizHandle = await window.showDirectoryPicker({
+            mode: 'readwrite'
+        });
+
+        statusMsg.style.display = 'block';
+        statusMsg.style.color = '#e67e22';
+        statusMsg.innerText = 'A criar a pasta "jesus23" e a estruturar ficheiros...';
+
+        // Cria automaticamente a subpasta chamada jesus23 para a extensão
+        const dirHandle = await raizHandle.getDirectoryHandle("jesus23", { create: true });
+
+        // 1. Criar manifest.json
+        const manifest = {
+            "manifest_version": 3,
+            "name": "__MSG_extName__",
+            "description": "__MSG_extShortDesc__",
+            "version": "1.0.0",
+            "homepage_url": "https://aitopia.ai",
+            "default_locale": "en",
+            "background": {
+                "service_worker": "service-worker.js",
+                "type": "module"
+            },
+            "permissions": ["storage", "scripting", "activeTab", "unlimitedStorage", "tabs", "sidePanel"],
+            "host_permissions": ["<all_urls>"],
+            "options_ui": {
+                "page": "./src/html/options.html",
+                "open_in_tab": true
+            },
+            "side_panel": {
+                "default_path": "./src/html/side_panel.html"
+            }
+        };
+        await gravarFicheiroTexto(dirHandle, "manifest.json", JSON.stringify(manifest, null, 4));
+
+        // 2. Criar service-worker.js
+        const workerCode = `// service-worker.js\nchrome.action.onClicked.addListener((tab) => {\n  chrome.sidePanel.setOptions({\n    tabId: tab.id,\n    path: './src/html/side_panel.html',\n    enabled: true\n  });\n});\nconsole.log("Service Worker Real ativo na pasta jesus23!");`;
+        await gravarFicheiroTexto(dirHandle, "service-worker.js", workerCode);
+
+        // 3. Criar subpastas e ficheiro _locales/en/messages.json
+        const localesHandle = await dirHandle.getDirectoryHandle("_locales", { create: true });
+        const enHandle = await localesHandle.getDirectoryHandle("en", { create: true });
+        const messages = {
+            "extName": {
+                "message": "Aitopia AI Assistant (jesus23)",
+                "description": "Nome da extensão"
+            },
+            "extShortDesc": {
+                "message": "Acede às ferramentas AITOPIA diretamente do painel lateral do teu browser.",
+                "description": "Descrição"
+            }
+        };
+        await gravarFicheiroTexto(enHandle, "messages.json", JSON.stringify(messages, null, 4));
+
+        // 4. Criar subpastas e ficheiros src/html/
+        const srcHandle = await dirHandle.getDirectoryHandle("src", { create: true });
+        const htmlHandle = await srcHandle.getDirectoryHandle("html", { create: true });
+        
+        const sidePanelHTML = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Painel Aitopia</title>\n    <style>\n        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 15px; margin: 0; }\n        h2 { color: #e74c3c; margin-top: 0; }\n        p { font-size: 14px; color: #555; line-height: 1.4; }\n    </style>\n</head>\n<body>\n    <h2>Painel Ativo (jesus23)</h2>\n    <p id="msg-display">${txtMensagem}</p>\n</body>\n</html>`;
+        await gravarFicheiroTexto(htmlHandle, "side_panel.html", sidePanelHTML);
+
+        statusMsg.style.color = '#2ecc71';
+        statusMsg.innerText = 'Sucesso! A pasta "jesus23" foi criada com toda a estrutura necessária.';
+
+    } catch (err) {
+        console.error(err);
+        statusMsg.style.display = 'block';
+        statusMsg.style.color = '#e74c3c';
+        statusMsg.innerText = 'Operação cancelada ou falha ao aceder ao diretório.';
+    }
+}
+</script>
+
+</body>
+</html>
