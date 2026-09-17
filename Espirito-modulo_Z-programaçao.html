@@ -1,0 +1,93 @@
+<!-- ========================================== -->
+<!-- NOVO BLOCO: PESQUISA AVANÇADA DUCKDUCKGO -> GOOGLE -->
+<!-- ========================================== -->
+<hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+<div class="input-group" style="text-align: left;">
+    <label for="ddg-search" style="color: #de5833;">Pesquisa Ultra Avançada (modulos de programacao 'z' ou 'Enter' para buscar)</label>
+    <input type="text" id="ddg-search" placeholder="Ex: 'intitle:segurança' ou termos exatos..." style="border-color: #de5833;">
+</div>
+
+<script>
+    // Função centralizada que executa a pesquisa avançada
+    function executarPesquisaDDG(textoPesquisa) {
+        const queryInput = textoPesquisa.trim();
+        
+        if (queryInput) {
+            // O comando !g instrui o DuckDuckGo a redirecionar e abrir a pesquisa diretamente no Google
+            const bangTarget = "!g " + queryInput;
+            
+            // Codifica os caracteres para o formato de URL seguro
+            const encodedQuery = encodeURIComponent(bangTarget);
+            
+            // Constrói a URL final correta de pesquisa do DuckDuckGo
+            const searchUrl = 'https://duckduckgo.com/?q=' + encodedQuery;
+            
+            // Abre a pesquisa numa nova aba
+            window.open(searchUrl, '_blank');
+        } else {
+            alert('Por favor, digite um termo ou operador para pesquisar!');
+        }
+    }
+
+    // Escuta as teclas pressionadas dentro do campo de texto
+    document.getElementById('ddg-search').addEventListener('keydown', function(e) {
+        if (e.key === 'z' || e.key === 'Z' || e.key === 'Enter') {
+            // Impede que a letra 'z' ou o 'Enter' quebrem o input ou entrem no texto
+            e.preventDefault(); 
+            
+            // Captura o valor exato que já estava digitado no input
+            const valorAtual = this.value;
+            
+            // Executa a pesquisa com o texto correto
+            executarPesquisaDDG(valorAtual);
+        }
+    });
+</script>
+<!-- ========================================== -->
+<!-- FIM DO NOVO BLOCO -->
+<!-- ========================================== -->
+
+
+<!-- ========================================== -->
+<!-- BLOCO ADICIONAL: PESQUISA DE MÓDULOS ESPECÍFICOS -->
+<!-- ========================================== -->
+<hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+<div class="input-group" style="text-align: left;">
+    <label for="modulos-search" style="color: #007bb5;">Pesquisa Módulos Universais (pressione 'z' ou 'Enter')</label>
+    <input type="text" id="modulos-search" placeholder="Procurar em motores, carros, barcos, câmeras..." style="border-color: #007bb5;">
+</div>
+
+<script>
+    function executarPesquisaModulos(textoPesquisa) {
+        const queryInput = textoPesquisa.trim();
+        
+        // Termos obrigatórios solicitados
+        const termosBase = "modulos segurança universais programaçao carros motores barcos cameras web";
+        const queryCompleta = queryInput ? queryInput + " " + termosBase : termosBase;
+        
+        // Usa o !g do DuckDuckGo para forçar o redirecionamento
+        const bangTarget = "!g " + queryCompleta;
+        const encodedQuery = encodeURIComponent(bangTarget);
+        
+        // Base de redirecionamento utilizando o link exato do Google fornecido
+        const googleBase = 'https://www.google.com/?=-1';
+        
+        // Constrói a URL injetando o destino final do Google no motor do DuckDuckGo
+        const searchUrl = 'https://duckduckgo.com/?q=' + encodedQuery + '&g=' + encodeURIComponent(googleBase);
+        
+        window.open(searchUrl, '_blank');
+    }
+
+    document.getElementById('modulos-search').addEventListener('keydown', function(e) {
+        if (e.key === 'z' || e.key === 'Z' || e.key === 'Enter') {
+            e.preventDefault(); 
+            executarPesquisaModulos(this.value);
+        }
+    });
+</script>
+<!-- ========================================== -->
+<!-- FIM DO BLOCO ADICIONAL -->
+<!-- ========================================== -->
+<p><a href="https://moba.i.mercedes-benz.com/markets/ece-row/baix/cars/dck-compatibility/en_BA/index.html">modulos mercedes 2025<br><img src="https://media.tenor.com/sf-LQe0D9AQAAAAM/absorbing-varus.gif" width="200"></a></p>
