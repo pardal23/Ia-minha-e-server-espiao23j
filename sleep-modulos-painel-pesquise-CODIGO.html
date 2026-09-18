@@ -1,0 +1,146 @@
+<!-- ========================================== -->
+<!-- BLOCO ADICIONAL: PAINEL DE BUSCA PROFUNDA BLINDADO -->
+<!-- ========================================== -->
+<hr style="border: 0; border-top: 1px solid #007bb5; margin: 30px 0;">
+<h1 style="color:green; text-align:center;">.sleep módulos pesquisa projetos de código e placa</h1>
+
+<!-- Mudamos para uma estrutura de formulário nativa que o navegador aceita sempre -->
+<form id="form-super-busca" action="https://google.com" method="GET" target="_blank" style="text-align: left; font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+    
+    <div class="input-group">
+        <label for="modulos-search" style="color: #007bb5; font-weight: bold; display: block; margin-bottom: 8px;">
+            🔍 Super Pesquisa de Módulos Web & Hardware (Profundidade 100)
+        </label>
+        
+        <!-- O 'name="q"' é o parâmetro que o Google exige para ler o texto -->
+        <input type="text" id="modulos-search" name="q"
+               placeholder="Ex: esp32 mqtt, i2c driver, autenticação jwt react..." 
+               style="width: 100%; padding: 10px; border: 2px solid #007bb5; border-radius: 4px; box-sizing: border-box; font-size: 16px;" required>
+        
+        <!-- Input invisível que força o Google a trazer sempre 100 resultados na página -->
+        <input type="hidden" name="num" value="100">
+    </div>
+    
+    <!-- Botões de Ação Direta Baseados em Submissão Nativa -->
+    <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+        <button type="submit" id="btn-google" style="background: #007bb5; color: white; border: none; padding: 10px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">🌐 Tudo (Google 100)</button>
+        <button type="button" id="btn-github" style="background: #24292e; color: white; border: none; padding: 10px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">💻 Código (GitHub)</button>
+        <button type="button" id="btn-placa" style="background: #27ae60; color: white; border: none; padding: 10px 14px; border-radius: 4px; cursor: pointer; font-weight: bold;">📟 Placas / Hardware</button>
+    </div>
+    
+    <small style="color: #666; display: block; margin-top: 8px;">Escreva o termo e clique no botão ou pressione <strong>'Enter'</strong>.</small>
+</form>
+
+<script>
+    const form = document.getElementById('form-super-busca');
+    const inputSearch = document.getElementById('modulos-search');
+
+    // Contextos automatizados para enriquecer a pesquisa profunda
+    const contextoGeral = " módulos programação desenvolvimento web arquitetura";
+    const dorksPlaca = " (inurl:schematic OR inurl:pinout OR filetype:pdf hardware)";
+
+    // Evento principal: Quando o formulário é enviado (via botão Google ou tecla Enter)
+    form.addEventListener('submit', function(e) {
+        // Modifica temporariamente o valor do input apenas para incluir os super-termos na pesquisa
+        const valorOriginal = inputSearch.value;
+        inputSearch.value = valorOriginal + contextoGeral;
+        
+        // O formulário segue o seu caminho nativo do navegador para o Google, contornando qualquer bloqueio.
+        // Usamos um pequeno timeout para restaurar o texto original no ecrã do utilizador logo a seguir.
+        setTimeout(() => {
+            inputSearch.value = valorOriginal;
+        }, 100);
+    });
+
+    // Ação do Botão GitHub (Redirecionamento nativo via alteração de localização)
+    document.getElementById('btn-github').addEventListener('click', function() {
+        let termo = inputSearch.value.trim();
+        if (termo === "") { alert("Digite algo para pesquisar!"); return; }
+        
+        // Altera diretamente o endereço da página atual ou abre uma nova de forma segura
+        window.location.href = `https://github.com{encodeURIComponent(termo)}&type=repositories`;
+    });
+
+    // Ação do Botão Placa (Altera o formulário dinamicamente para buscar esquemas)
+    document.getElementById('btn-placa').addEventListener('click', function() {
+        let termo = inputSearch.value.trim();
+        if (termo === "") { alert("Digite algo para pesquisar!"); return; }
+        
+        const valorOriginal = inputSearch.value;
+        inputSearch.value = valorOriginal + dorksPlaca;
+        
+        // Dispara o envio nativo
+        form.submit();
+        
+        setTimeout(() => {
+            inputSearch.value = valorOriginal;
+        }, 100);
+    });
+
+    // Captura opcional da tecla 'z' para quem prefere atalhos de teclado rápidos
+    inputSearch.addEventListener('keydown', function(e) {
+        if (e.key === 'z' || e.key === 'Z') {
+            e.preventDefault();
+            if (this.value.trim() !== "") {
+                form.submit(); // Dispara a busca padrão
+            }
+        }
+    });
+</script>
+    /**
+     * Super Função Módulos: Centraliza a lógica de busca avançada
+     * @param {string} entradaUsuario - O termo digitado pelo programador
+     */
+    function superFunctionModulos(entradaUsuario) {
+        // Loop interativo de processamento (higienização de dados)
+        let termosProcessados = [];
+        const palavrasChave = entradaUsuario.split(' ');
+
+        for (let i = 0; i < palavrasChave.length; i++) {
+            let palavra = palavrasChave[i].trim().toLowerCase();
+            if (palavra.length > 0) {
+                termosProcessados.push(palavra);
+            }
+        }
+
+        // Contexto obrigatório focado em desenvolvimento web e engenharia de software
+        const contextoWeb = "módulos programação desenvolvimento web arquitetura projetos backend frontend";
+        const queryFinal = termosProcessados.length > 0 
+            ? termosProcessados.join(' ') + " " + contextoWeb 
+            : contextoWeb;
+
+        // Executa a chamada externa aplicando a profundidade de 15 resultados
+        pesquisarUniversalProfundidade15(queryFinal);
+    }
+
+    /**
+     * Executa a pesquisa universal utilizando a API de busca do Google formatada
+     * @param {string} query - Query completa combinada
+     */
+    function pesquisarUniversalProfundidade15(query) {
+        const googleBaseUrl = "https://google.com";
+        
+        // num=15 define a profundidade da página para trazer 15 resultados estruturados
+        const urlFinal = `${googleBaseUrl}?q=${encodeURIComponent(query)}&num=15`;
+        
+        // Abre a pesquisa profunda numa nova aba
+        window.open(urlFinal, '_blank');
+    }
+
+    // Escuta de eventos para ativação por teclado (Loop de captura do Usuário)
+    document.getElementById('modulos-search').addEventListener('keydown', function(e) {
+        if (e.key === 'z' || e.key === 'Z' || e.key === 'Enter') {
+            e.preventDefault(); 
+            
+            // Loop interativo: Valida se o campo não está vazio antes de disparar
+            if (this.value.trim() === "") {
+                alert("Por favor, digite um módulo ou tecnologia para pesquisar!");
+                this.focus();
+                return;
+            }
+
+            // Invoca a super função com o input do utilizador
+            superFunctionModulos(this.value);
+        }
+    });
+</script>
